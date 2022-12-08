@@ -20,10 +20,12 @@ from .const import (
 class Utility:
     """Class to represent a utility (gas/electricity)."""
 
-    def __init__(self, id: str, type: Utilities, source: Sources) -> None:
+    def __init__(
+        self, resource_id: str, utility_type: Utilities, source: Sources
+    ) -> None:
         """Initialise Utility object."""
-        self.id = id
-        self.type = type
+        self.resource_id = resource_id
+        self.utility_type = utility_type
         self.source = source
 
 
