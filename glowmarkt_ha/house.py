@@ -72,9 +72,7 @@ class Utility:
             BASE_URL + ENDPOINT_RESOURCE + self.resource_id + "/" + ENDPOINT_READMETER
         )
         if response.status_code == 200:
-            return Reading(
-                self.resource_id, self.utility_type, self.source, response)
-            )
+            return Reading(self.resource_id, self.utility_type, self.source, response)
 
     async def get_tariff(self) -> dict:
         """Get current tariff."""
