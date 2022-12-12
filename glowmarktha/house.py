@@ -11,6 +11,7 @@ from .const import (
     API_PASSWORD,
     API_RESOURCE_ID,
     API_RESPONSE_DATA,
+    API_RESPONSE_POSTAL_CODE,
     API_RESPONSE_RATE,
     API_RESPONSE_STANDING_CHARGE,
     API_RESPONSE_UNIT,
@@ -18,9 +19,11 @@ from .const import (
     APPLICATION_ID,
     BASE_URL,
     ENDPOINT_AUTH,
+    ENDPOINT_CURRENT,
     ENDPOINT_READMETER,
     ENDPOINT_RESOURCE,
     ENDPOINT_TARIFF,
+    ENDPOINT_VIRTUAL_ENTITY,
     Sources,
     Utilities,
 )
@@ -68,8 +71,15 @@ class Utility:
 
     async def read_meter(self) -> float:
         """Read current meter value."""
+
+        ENDPOINT = (
+            ENDPOINT_READMETER
+            if self.utility_type is Utilities.ELECTRICITY
+            else ENDPOINT_CURRENT
+        )
+
         response = await self._client.get(
-            BASE_URL + ENDPOINT_RESOURCE + self.resource_id + "/" + ENDPOINT_READMETER
+            BASE_URL + ENDPOINT_RESOURCE + self.resource_id + "/" + ENDPOINT
         )
         if response.status_code == 200:
             return Reading(self.resource_id, self.utility_type, self.source, response)
@@ -105,6 +115,7 @@ class House:
 
         self._client = client
         self._token: str | None = None
+        self.post_code: str | None = None
 
     async def auth(self, username: str, password: str) -> bool:
         """Authenticate with Glowmarkt."""
@@ -121,6 +132,9 @@ class House:
         if response.status_code == 200:
             self._token = response.json()["token"]
             self._client.headers.update({"token": self._token})
+            response = await self._client.get(BASE_URL + ENDPOINT_VIRTUAL_ENTITY)
+            if response.status_code == 200:
+                self.post_code = response.json()[0][API_RESPONSE_POSTAL_CODE]
             return True
         return False
 
