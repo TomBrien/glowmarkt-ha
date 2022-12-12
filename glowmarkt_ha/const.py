@@ -12,9 +12,16 @@ API_USERNAME = "username"
 API_CONSUMPTION = "consumption"
 API_RESOURCE_ID = "resourceId"
 API_RESOURCE_NAME = "name"
+API_RESPONSE_DATA = "data"
+API_RESPONSE_UNIT = "units"
+API_RESPONSE_TARIFF_STRUCTURE = "structure"
+API_RESPONSE_RATE = "rate"
+API_RESPONSE_STANDING_CHARGE = "standing"
 
-ENDPOINT_AUTH = "auth"
-ENDPOINT_RESOURCE = "resource"
+ENDPOINT_AUTH = "auth/"
+ENDPOINT_RESOURCE = "resource/"
+ENDPOINT_READMETER = "meterread"
+ENDPOINT_TARIFF = "tariff"
 
 
 class Utilities(Enum):
