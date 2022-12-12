@@ -44,10 +44,10 @@ class Reading:
         self._raw_response = response
         self._json = response.json()
         self.timestamp = datetime.datetime.fromtimestamp(
-            response[API_RESPONSE_DATA][-1][0]
+            self._json[API_RESPONSE_DATA][-1][0]
         )
-        self.value = response[API_RESPONSE_DATA][-1][1]
-        self.unit = response[API_RESPONSE_UNIT]
+        self.value = self._json[API_RESPONSE_DATA][-1][1]
+        self.unit = self._json[API_RESPONSE_UNIT]
 
 
 class Utility:
