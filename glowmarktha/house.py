@@ -12,13 +12,16 @@ from .const import (
     API_RESOURCE_ID,
     API_RESPONSE_DATA,
     API_RESPONSE_POSTAL_CODE,
+    API_RESPONSE_QUERY,
     API_RESPONSE_RATE,
     API_RESPONSE_STANDING_CHARGE,
+    API_RESPONSE_START,
     API_RESPONSE_UNIT,
     API_USERNAME,
     APPLICATION_ID,
     BASE_URL,
     ENDPOINT_AUTH,
+    ENDPOINT_CONSUMPTION,
     ENDPOINT_CURRENT,
     ENDPOINT_READMETER,
     ENDPOINT_RESOURCE,
@@ -36,19 +39,37 @@ class Reading:
     def __init__(
         self,
         resource_id: str,
-        utility_type: Utilities,
         source: Sources,
-        response: dict,
+        response: httpx.Response,
     ) -> None:
         """Initialise Reading object."""
         self.resource_id = resource_id
-        self.utility_type = utility_type
         self.source = source
         self._raw_response = response
         self._json = response.json()
         self.timestamp = datetime.datetime.fromtimestamp(
             self._json[API_RESPONSE_DATA][-1][0]
         )
+        self.value = self._json[API_RESPONSE_DATA][-1][1]
+        self.unit = self._json[API_RESPONSE_UNIT]
+
+
+@dataclass
+class Consumption:
+    """Class to represent a consumption reading of a utility."""
+
+    def __init__(
+        self, resource_id: str, source: Sources, response: httpx.Response
+    ) -> None:
+        """Initialise Consumption object."""
+        self.resource_id = resource_id
+        self.source = source
+        self._raw_response = response
+        self._json = response.json()
+        self.start = datetime.datetime.strptime(
+            self._json[API_RESPONSE_QUERY][API_RESPONSE_START], "%Y-%m-%dT%H:%M:%S"
+        )
+        self.end = datetime.datetime.fromtimestamp(self._json[API_RESPONSE_DATA][-1][0])
         self.value = self._json[API_RESPONSE_DATA][-1][1]
         self.unit = self._json[API_RESPONSE_UNIT]
 
@@ -82,7 +103,7 @@ class Utility:
             BASE_URL + ENDPOINT_RESOURCE + self.resource_id + "/" + ENDPOINT
         )
         if response.status_code == 200:
-            return Reading(self.resource_id, self.utility_type, self.source, response)
+            return Reading(self.resource_id, self.source, response)
 
     async def get_tariff(self) -> dict:
         """Get current tariff."""
@@ -94,6 +115,28 @@ class Utility:
                 "rate": response.json()[API_RESPONSE_RATE],
                 "standing": response.json()[API_RESPONSE_STANDING_CHARGE],
             }
+
+    async def get_consumption(
+        self, start: datetime.datetime, end: datetime.datetime, period: str = "P1Y"
+    ):
+        """Get consumption between two datetimes."""
+        start_utc = start.astimezone(datetime.timezone.utc)
+        end_utc = end.astimezone(datetime.timezone.utc)
+        response = await self._client.get(
+            BASE_URL
+            + ENDPOINT_RESOURCE
+            + self.resource_id
+            + "/"
+            + ENDPOINT_CONSUMPTION,
+            params={
+                "from": start_utc.strftime("%Y-%m-%dT%H:%M:%S"),
+                "to": end_utc.strftime("%Y-%m-%dT%H:%M:%S"),
+                "function": "sum",
+                "period": period,
+            },
+        )
+        if response.status_code == 200:
+            return Consumption(self.resource_id, self.source, response)
 
     def update_client(self, client: httpx.AsyncClient) -> None:
         """Update client."""
