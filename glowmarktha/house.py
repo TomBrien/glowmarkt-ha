@@ -11,11 +11,10 @@ from .const import (
     API_PASSWORD,
     API_RESOURCE_ID,
     API_RESPONSE_DATA,
+    API_RESPONSE_LAST_TIME,
     API_RESPONSE_POSTAL_CODE,
-    API_RESPONSE_QUERY,
     API_RESPONSE_RATE,
     API_RESPONSE_STANDING_CHARGE,
-    API_RESPONSE_START,
     API_RESPONSE_UNIT,
     API_USERNAME,
     APPLICATION_ID,
@@ -23,6 +22,7 @@ from .const import (
     ENDPOINT_AUTH,
     ENDPOINT_CONSUMPTION,
     ENDPOINT_CURRENT,
+    ENDPOINT_LAST_DATA,
     ENDPOINT_READMETER,
     ENDPOINT_RESOURCE,
     ENDPOINT_TARIFF,
@@ -59,17 +59,21 @@ class Consumption:
     """Class to represent a consumption reading of a utility."""
 
     def __init__(
-        self, resource_id: str, source: Sources, response: httpx.Response
+        self,
+        resource_id: str,
+        source: Sources,
+        response: httpx.Response,
+        end: datetime.datetime,
     ) -> None:
         """Initialise Consumption object."""
         self.resource_id = resource_id
         self.source = source
         self._raw_response = response
         self._json = response.json()
-        self.start = datetime.datetime.strptime(
-            self._json[API_RESPONSE_QUERY][API_RESPONSE_START], "%Y-%m-%dT%H:%M:%S"
+        self.start = datetime.datetime.fromtimestamp(
+            self._json[API_RESPONSE_DATA][-1][0]
         )
-        self.end = datetime.datetime.fromtimestamp(self._json[API_RESPONSE_DATA][-1][0])
+        self.end = end
         self.value = self._json[API_RESPONSE_DATA][-1][1]
         self.unit = self._json[API_RESPONSE_UNIT]
 
@@ -123,11 +127,7 @@ class Utility:
         start_utc = start.astimezone(datetime.timezone.utc)
         end_utc = end.astimezone(datetime.timezone.utc)
         response = await self._client.get(
-            BASE_URL
-            + ENDPOINT_RESOURCE
-            + self.resource_id
-            + "/"
-            + ENDPOINT_CONSUMPTION,
+            BASE_URL + ENDPOINT_RESOURCE + self.resource_id + ENDPOINT_CONSUMPTION,
             params={
                 "from": start_utc.strftime("%Y-%m-%dT%H:%M:%S"),
                 "to": end_utc.strftime("%Y-%m-%dT%H:%M:%S"),
@@ -135,8 +135,14 @@ class Utility:
                 "period": period,
             },
         )
+        response_end = await self._client.get(
+            BASE_URL + ENDPOINT_RESOURCE + self.resource_id + ENDPOINT_LAST_DATA
+        )
+        actual_end = datetime.datetime.fromtimestamp(
+            response_end.json()[API_RESPONSE_DATA][API_RESPONSE_LAST_TIME]
+        )
         if response.status_code == 200:
-            return Consumption(self.resource_id, self.source, response)
+            return Consumption(self.resource_id, self.source, response, actual_end)
 
     def update_client(self, client: httpx.AsyncClient) -> None:
         """Update client."""
