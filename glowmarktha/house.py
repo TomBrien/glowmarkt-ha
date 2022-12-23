@@ -48,7 +48,7 @@ class Reading:
         self._raw_response = response
         self._json = response.json()
         self.timestamp = datetime.datetime.fromtimestamp(
-            self._json[API_RESPONSE_DATA][-1][0]
+            self._json[API_RESPONSE_DATA][-1][0], tz=datetime.timezone.utc
         )
         self.value = self._json[API_RESPONSE_DATA][-1][1]
         self.unit = self._json[API_RESPONSE_UNIT]
@@ -71,7 +71,7 @@ class Consumption:
         self._raw_response = response
         self._json = response.json()
         self.start = datetime.datetime.fromtimestamp(
-            self._json[API_RESPONSE_DATA][-1][0]
+            self._json[API_RESPONSE_DATA][-1][0], tz=datetime.timezone.utc
         )
         self.end = end
         self.value = self._json[API_RESPONSE_DATA][-1][1]
@@ -139,7 +139,8 @@ class Utility:
             BASE_URL + ENDPOINT_RESOURCE + self.resource_id + ENDPOINT_LAST_DATA
         )
         actual_end = datetime.datetime.fromtimestamp(
-            response_end.json()[API_RESPONSE_DATA][API_RESPONSE_LAST_TIME]
+            response_end.json()[API_RESPONSE_DATA][API_RESPONSE_LAST_TIME],
+            tz=datetime.timezone.utc,
         )
         if response.status_code == 200:
             return Consumption(self.resource_id, self.source, response, actual_end)
