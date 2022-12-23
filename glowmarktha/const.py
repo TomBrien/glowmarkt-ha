@@ -12,6 +12,8 @@ API_USERNAME = "username"
 API_CONSUMPTION = "consumption"
 API_RESOURCE_ID = "resourceId"
 API_RESOURCE_NAME = "name"
+
+API_RESPONSE_CURRENT_RATES = "currentRates"
 API_RESPONSE_DATA = "data"
 API_RESPONSE_LAST_TIME = "lastTs"
 API_RESPONSE_POSTAL_CODE = "postalCode"

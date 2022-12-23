@@ -10,6 +10,7 @@ from .const import (
     API_CONSUMPTION,
     API_PASSWORD,
     API_RESOURCE_ID,
+    API_RESPONSE_CURRENT_RATES,
     API_RESPONSE_DATA,
     API_RESPONSE_LAST_TIME,
     API_RESPONSE_POSTAL_CODE,
@@ -115,9 +116,10 @@ class Utility:
             BASE_URL + ENDPOINT_RESOURCE + self.resource_id + "/" + ENDPOINT_TARIFF
         )
         if response.status_code == 200:
+            rates = response.json()[API_RESPONSE_DATA][API_RESPONSE_CURRENT_RATES]
             return {
-                "rate": response.json()[API_RESPONSE_RATE],
-                "standing": response.json()[API_RESPONSE_STANDING_CHARGE],
+                "rate": rates[API_RESPONSE_RATE],
+                "standing": rates[API_RESPONSE_STANDING_CHARGE],
             }
 
     async def get_consumption(
