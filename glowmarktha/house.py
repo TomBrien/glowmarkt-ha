@@ -62,20 +62,19 @@ class Consumption:
     def __init__(
         self,
         resource_id: str,
-        source: Sources,
         response: httpx.Response,
         end: datetime.datetime,
     ) -> None:
         """Initialise Consumption object."""
         self.resource_id = resource_id
-        self.source = source
         self._raw_response = response
         self._json = response.json()
         self.start = datetime.datetime.fromtimestamp(
             self._json[API_RESPONSE_DATA][-1][0], tz=datetime.timezone.utc
         )
         self.end = end
-        self.value = self._json[API_RESPONSE_DATA][-1][1]
+        self._values = [reading[1] for reading in self._json[API_RESPONSE_DATA]]
+        self.value = sum(self._values)
         self.unit = self._json[API_RESPONSE_UNIT]
 
 
@@ -116,7 +115,7 @@ class Utility:
             BASE_URL + ENDPOINT_RESOURCE + self.resource_id + "/" + ENDPOINT_TARIFF
         )
         if response.status_code == 200:
-            rates = response.json()[API_RESPONSE_DATA][API_RESPONSE_CURRENT_RATES]
+            rates = response.json()[API_RESPONSE_DATA][0][API_RESPONSE_CURRENT_RATES]
             return {
                 "rate": rates[API_RESPONSE_RATE],
                 "standing": rates[API_RESPONSE_STANDING_CHARGE],
@@ -145,7 +144,7 @@ class Utility:
             tz=datetime.timezone.utc,
         )
         if response.status_code == 200:
-            return Consumption(self.resource_id, self.source, response, actual_end)
+            return Consumption(self.resource_id, response, actual_end)
 
     def update_client(self, client: httpx.AsyncClient) -> None:
         """Update client."""
