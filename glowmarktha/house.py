@@ -10,6 +10,8 @@ from .const import (
     API_CONSUMPTION,
     API_PASSWORD,
     API_RESOURCE_ID,
+    API_RESPONSE_AUTH_EXPIRE,
+    API_RESPONSE_AUTH_VALID,
     API_RESPONSE_CURRENT_RATES,
     API_RESPONSE_DATA,
     API_RESPONSE_LAST_TIME,
@@ -31,6 +33,20 @@ from .const import (
     Sources,
     Utilities,
 )
+
+
+@dataclass
+class AuthStatus:
+    """Class to represent the authentication status."""
+
+    def __init__(self, response: httpx.Response) -> None:
+        """Initialise AuthStatus object."""
+        self._raw_response = response
+        self._json: dict = response.json()
+        self.auth_valid: bool = self._json[API_RESPONSE_AUTH_VALID]
+        self.expires: datetime.datetime = datetime.datetime.fromtimestamp(
+            self._json[API_RESPONSE_AUTH_EXPIRE], tz=datetime.timezone.utc
+        )
 
 
 @dataclass
@@ -170,12 +186,7 @@ class House:
 
     async def auth(self, username: str, password: str) -> bool:
         """Authenticate with Glowmarkt."""
-        if self._token:
-            self._client.headers.update({"token": self._token})
-            response = await self._client.get(BASE_URL + ENDPOINT_AUTH)
-            if response.status_code == 200:
-                return True
-            self._token = None
+        self._token = None
         response = await self._client.post(
             BASE_URL + ENDPOINT_AUTH,
             json={API_USERNAME: username, API_PASSWORD: password},
@@ -188,6 +199,14 @@ class House:
                 self.post_code = response.json()[0][API_RESPONSE_POSTAL_CODE]
             return True
         return False
+
+    async def check_auth(self) -> AuthStatus | None:
+        """Check if authenticated."""
+        if self._token:
+            self._client.headers.update({"token": self._token})
+            response = await self._client.get(BASE_URL + ENDPOINT_AUTH)
+            if response.status_code == 200:
+                return AuthStatus(response)
 
     async def get_utilities(self) -> list[Utility]:
         """Get and sort all utilities connected to account."""
