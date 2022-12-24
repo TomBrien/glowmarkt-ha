@@ -48,6 +48,10 @@ class AuthStatus:
             self._json[API_RESPONSE_AUTH_EXPIRE], tz=datetime.timezone.utc
         )
 
+    def __bool__(self) -> bool:
+        """Return whether the authentication is valid."""
+        return self.auth_valid
+
 
 @dataclass
 class Reading:
