@@ -70,7 +70,7 @@ class Consumption:
         self._raw_response = response
         self._json = response.json()
         self.start = datetime.datetime.fromtimestamp(
-            self._json[API_RESPONSE_DATA][-1][0], tz=datetime.timezone.utc
+            self._json[API_RESPONSE_DATA][0][0], tz=datetime.timezone.utc
         )
         self.end = end
         self._values = [reading[1] for reading in self._json[API_RESPONSE_DATA]]
