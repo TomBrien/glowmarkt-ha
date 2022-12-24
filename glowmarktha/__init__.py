@@ -1,3 +1,4 @@
 """Initialise. """
+from typing import Final
 
-__version__ = "0.0.7"
+__version__: Final[str] = "0.0.7"
