@@ -14,7 +14,6 @@ from .const import (
     API_RESPONSE_AUTH_VALID,
     API_RESPONSE_CURRENT_RATES,
     API_RESPONSE_DATA,
-    API_RESPONSE_LAST_TIME,
     API_RESPONSE_POSTAL_CODE,
     API_RESPONSE_RATE,
     API_RESPONSE_STANDING_CHARGE,
@@ -25,7 +24,6 @@ from .const import (
     ENDPOINT_AUTH,
     ENDPOINT_CONSUMPTION,
     ENDPOINT_CURRENT,
-    ENDPOINT_LAST_DATA,
     ENDPOINT_READMETER,
     ENDPOINT_RESOURCE,
     ENDPOINT_TARIFF,
@@ -90,8 +88,10 @@ class Consumption:
             for reading in self._json[API_RESPONSE_DATA]
         ]
         self.summed_value = sum(self._values)
-        self.data = [{dt: value} for dt, value in zip(self._datetimes, self._values)]
-        self.unit = self._json[API_RESPONSE_UNIT]
+        self.data: dict[datetime.datetime, float] = {
+            dt: value for dt, value in zip(self._datetimes, self._values)
+        }
+        self.unit: str = self._json[API_RESPONSE_UNIT]
 
 
 class Utility:
