@@ -152,9 +152,9 @@ class Utility:
                 "period": period,
             },
         )
-        response_end = await self._client.get(
-            BASE_URL + ENDPOINT_RESOURCE + self.resource_id + ENDPOINT_LAST_DATA
-        )
+        # response_end = await self._client.get(
+        #     BASE_URL + ENDPOINT_RESOURCE + self.resource_id + ENDPOINT_LAST_DATA
+        # )
         # actual_end = datetime.datetime.fromtimestamp(
         #     response_end.json()[API_RESPONSE_DATA][API_RESPONSE_LAST_TIME],
         #     tz=datetime.timezone.utc,
