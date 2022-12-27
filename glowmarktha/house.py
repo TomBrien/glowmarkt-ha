@@ -79,22 +79,18 @@ class Reading:
 class Consumption:
     """Class to represent a consumption reading of a utility."""
 
-    def __init__(
-        self,
-        resource_id: str,
-        response: httpx.Response,
-        end: datetime.datetime,
-    ) -> None:
+    def __init__(self, resource_id: str, response: httpx.Response) -> None:
         """Initialise Consumption object."""
         self.resource_id = resource_id
         self._raw_response = response
         self._json = response.json()
-        self.start = datetime.datetime.fromtimestamp(
-            self._json[API_RESPONSE_DATA][0][0], tz=datetime.timezone.utc
-        )
-        self.end = end
         self._values = [reading[1] for reading in self._json[API_RESPONSE_DATA]]
-        self.value = sum(self._values)
+        self._datetimes = [
+            datetime.datetime.fromtimestamp(reading[0], tz=datetime.timezone.utc)
+            for reading in self._json[API_RESPONSE_DATA]
+        ]
+        self.summed_value = sum(self._values)
+        self.data = [{dt: value} for dt, value in zip(self._datetimes, self._values)]
         self.unit = self._json[API_RESPONSE_UNIT]
 
 
@@ -159,12 +155,12 @@ class Utility:
         response_end = await self._client.get(
             BASE_URL + ENDPOINT_RESOURCE + self.resource_id + ENDPOINT_LAST_DATA
         )
-        actual_end = datetime.datetime.fromtimestamp(
-            response_end.json()[API_RESPONSE_DATA][API_RESPONSE_LAST_TIME],
-            tz=datetime.timezone.utc,
-        )
+        # actual_end = datetime.datetime.fromtimestamp(
+        #     response_end.json()[API_RESPONSE_DATA][API_RESPONSE_LAST_TIME],
+        #     tz=datetime.timezone.utc,
+        # )
         if response.status_code == 200:
-            return Consumption(self.resource_id, response, actual_end)
+            return Consumption(self.resource_id, response)
 
     def update_client(self, client: httpx.AsyncClient) -> None:
         """Update client."""
