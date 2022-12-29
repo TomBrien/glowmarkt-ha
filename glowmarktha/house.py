@@ -104,10 +104,12 @@ class Tariff:
         """Initialise Tariff object."""
         self.resource_id = resource_id
         self._raw_response = response
-        self._json = response.json()
-        self._rates = self._json[API_RESPONSE_DATA][0][API_RESPONSE_CURRENT_RATES]
-        self.unit_rate = self._rates[API_RESPONSE_RATE]
-        self.standing_charge = self._rates[API_RESPONSE_STANDING_CHARGE]
+        self._json: dict = response.json()
+        self._rates: dict[str, str] = self._json[API_RESPONSE_DATA][0][
+            API_RESPONSE_CURRENT_RATES
+        ]
+        self.unit_rate: float = float(self._rates[API_RESPONSE_RATE])
+        self.standing_charge: float = float(self._rates[API_RESPONSE_STANDING_CHARGE])
 
 
 class Utility:
