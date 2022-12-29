@@ -106,7 +106,7 @@ class Tariff:
         self._raw_response = response
         self._json = response.json()
         self._rates = self._json[API_RESPONSE_DATA][0][API_RESPONSE_CURRENT_RATES]
-        self.rate = self._rates[API_RESPONSE_RATE]
+        self.unit_rate = self._rates[API_RESPONSE_RATE]
         self.standing_charge = self._rates[API_RESPONSE_STANDING_CHARGE]
 
 
