@@ -96,6 +96,20 @@ class Consumption:
         self.unit: str = self._json[API_RESPONSE_UNIT]
 
 
+@dataclass
+class Tariff:
+    """Class to represent a tariff."""
+
+    def __init__(self, resource_id: str, response: httpx.Response) -> None:
+        """Initialise Tariff object."""
+        self.resource_id = resource_id
+        self._raw_response = response
+        self._json = response.json()
+        self._rates = self._json[API_RESPONSE_DATA][0][API_RESPONSE_CURRENT_RATES]
+        self.rate = self._rates[API_RESPONSE_RATE]
+        self.standing_charge = self._rates[API_RESPONSE_STANDING_CHARGE]
+
+
 class Utility:
     """Class to represent a utility (gas/electricity)."""
 
@@ -127,17 +141,13 @@ class Utility:
         if response.status_code == 200:
             return Reading(self.resource_id, self.source, response)
 
-    async def get_tariff(self) -> dict:
+    async def get_tariff(self) -> Tariff:
         """Get current tariff."""
         response = await self._client.get(
             BASE_URL + ENDPOINT_RESOURCE + self.resource_id + "/" + ENDPOINT_TARIFF
         )
         if response.status_code == 200:
-            rates = response.json()[API_RESPONSE_DATA][0][API_RESPONSE_CURRENT_RATES]
-            return {
-                "rate": rates[API_RESPONSE_RATE],
-                "standing": rates[API_RESPONSE_STANDING_CHARGE],
-            }
+            return Tariff(self.resource_id, response)
 
     async def get_consumption(
         self, start: datetime.datetime, end: datetime.datetime, period: str = "P1Y"
