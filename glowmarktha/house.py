@@ -87,6 +87,8 @@ class Consumption:
             datetime.datetime.fromtimestamp(reading[0], tz=datetime.timezone.utc)
             for reading in self._json[API_RESPONSE_DATA]
         ]
+        self.first = self._datetimes[0]
+        self.last = self._datetimes[-1]
         self.summed_value = sum(self._values)
         self.data: dict[datetime.datetime, float] = {
             dt: value for dt, value in zip(self._datetimes, self._values)
